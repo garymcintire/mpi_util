@@ -14,8 +14,8 @@
     That method can require more knowledge of the actual algo whereas accumlating batches 
     to rank0 works for almost all batch RL algorithms
     
-    Add th mpi_util.py to your project and make a few edits. The example here is the very good Pat Coady 
-    algorithm at ...
+    Add thr mpi_util.py to your project and make a few edits to the original source code. 
+    The example here is the very good Pat Coady algorithm at ...
   
  <a href="https://github.com/pat-coady/trpo"> https://github.com/pat-coady/trpo</a>
     
@@ -31,7 +31,7 @@
 3. When nprocs is known shortly after program start, fork nprocs...<br>
 	<code>if "parent" == mpi_util.mpi_fork(args.nprocs): os.exit()</code>
 
-4. Each process and environment will need random different seeds computed from<br>
+4. Each process and environment will need random different seeds computed<br>
     <code>mpi_util.set_global_seeds(seed+mpi_util.rank)<br>
     env.seed(seed+mpi_util.rank)</code>
 
@@ -41,7 +41,7 @@
     it can be useful to prepend print statements with the rank   <code>print( str(mpi_util.rank) + ... )</code>
 
 6. Accumulate the batches with something like<br>
-    <code>d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew})<br>
+    <code>d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew})<br><br>
     observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], d['advantages']</code>
 
 7. Since this accumulates the batches to rank0, you can avoid processing weight updates on <br>
