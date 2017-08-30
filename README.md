@@ -12,8 +12,8 @@
     That method can require more knowledge of the actual algo whereas accumlating batches 
     to rank0 works for almost all batch RL algorithms 
 
-1. Make the ConfigProto use as small an amount of memory as possible. It will grow this as needed. 
-    Add gpu_options like this ...
+1. Make the ConfigProto use as small an amount of memory as possible. 
+    It will grow this as needed. Add gpu_options like this ...
     self.sess = tf.Session(graph=self.g, config=mpi_util.tf_config)  # see tf_config in the code below
 
 2. Add mpi_util
