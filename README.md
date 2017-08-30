@@ -34,8 +34,8 @@
 	<code>if "parent" == mpi_util.mpi_fork(args.nprocs): os.exit()</code>
 
 4. Each process and environment will need random different seeds computed<br>
-    <code>mpi_util.set_global_seeds(seed+mpi_util.rank)<br>
-    env.seed(seed+mpi_util.rank)</code>
+    <code>mpi_util.set_global_seeds(seed+mpi_util.rank)</code><br>
+    <code>env.seed(seed+mpi_util.rank)</code>
 
 5. print statements, env monitoring/rendering, etc may need to be conditional such that only <br>
     one process does it<br>
