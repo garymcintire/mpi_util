@@ -43,7 +43,7 @@
     it can be useful to prepend print statements with the rank   <code>print( str(mpi_util.rank) + ... )</code>
 
 6. Accumulate the batches with something like<br>
-    <code>d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes,<code> <br>
+    <code>d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes,</code> <br>
     <code>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;'disc_sum_rew': disc_sum_rew}) </code><br><br>
     <code>observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], </code>
     <code>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;d['advantages']</code>
