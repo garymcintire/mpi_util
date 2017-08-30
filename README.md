@@ -45,7 +45,7 @@
 6. Accumulate the batches with something like<br>
     <code>d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes,</code> <br>
     <code>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;'disc_sum_rew': disc_sum_rew}) </code><br>
-    <code>observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], </code>
+    <code>observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], </code><br>
     <code>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;d['advantages']</code>
 
 7. Since this accumulates the batches to rank0, you can avoid processing weight updates on <br>
