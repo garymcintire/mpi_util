@@ -1,5 +1,5 @@
-                                <bold>Parallelizing RL batch algorithms
-                                            Gary McIntire</bold>
+                                Parallelizing RL batch algorithms
+                                            Gary McIntire
 
     There are multiple ways to do this, but the easiest one(shown here) is to have all 
     processes do their rollouts and then gather those rollouts back to process 0. 
