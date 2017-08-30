@@ -43,14 +43,14 @@
     it can be useful to prepend print statements with the rank   <code>print( str(mpi_util.rank) + ... )</code>
 
 6. Accumulate the batches with something like<br>
-    <code>d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew})</code><<br>
+    <code>d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew}) </code><<br>
     <code>observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], d['advantages']</code>
 
 7. Since this accumulates the batches to rank0, you can avoid processing weight updates on <br>
     the other processes<br>
     <code>if mpi_util.rank==0:</code><br>
         <code>&emsp;&emsp;policy.update(observes, actions, advantages, logger)  # update policy</code><br>
-        &emsp;&emsp;val_func.fit(observes, disc_sum_rew, logger)  # update value function</code>
+        <code>&emsp;&emsp;val_func.fit(observes, disc_sum_rew, logger)  # update value function</code>
 
 8. After updating the weights on rank0, broadcast the weights from rank0 back to all the other processes<br>
     <code>mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')</code><br>
