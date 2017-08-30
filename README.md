@@ -43,8 +43,10 @@
     it can be useful to prepend print statements with the rank   <code>print( str(mpi_util.rank) + ... )</code>
 
 6. Accumulate the batches with something like<br>
-    <code>d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew}) </code><<br>
-    <code>observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], d['advantages']</code>
+    <code>d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, <br>
+    &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;'disc_sum_rew': disc_sum_rew}) </code><br>
+    <code>observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], 
+    &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;d['advantages']</code>
 
 7. Since this accumulates the batches to rank0, you can avoid processing weight updates on <br>
     the other processes<br>
