@@ -1,6 +1,6 @@
 
 
-# Parallelizing RL batch algorithms
+# mpi_util     Parallelizing RL batch algorithms
                                             by Gary McIntire
 
     There are multiple ways to do this, but the easiest one(shown here) is to have all 
@@ -10,12 +10,14 @@
 
     Another example where batches are 'not' accumulated to rank 0 is the trpo_mpi code 
     of the openai baselines https://github.com/openai/baselines/tree/master/baselines/trpo_mpi  
-    where the gradients are averaged together
+    where the gradients are averaged together.
     That method can require more knowledge of the actual algo whereas accumlating batches 
     to rank0 works for almost all batch RL algorithms
     
-    Add thr mpi_util.py to your project and make a few edits to the original source code. 
-    The example here is the very good Pat Coady algorithm at ...
+    To parallelize your algo, add the mpi_util.py to your project and make a few edits to the 
+    original source code following these steps. 
+    
+    The example used here is the excellent Pat Coady algorithm at ...
   
  <a href="https://github.com/pat-coady/trpo"> https://github.com/pat-coady/trpo</a>
     
@@ -41,8 +43,8 @@
     it can be useful to prepend print statements with the rank   <code>print( str(mpi_util.rank) + ... )</code>
 
 6. Accumulate the batches with something like<br>
-    <code>d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew})<br><br>
-    observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], d['advantages']</code>
+    <code>d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew})</code><<br>
+    <code>observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], d['advantages']</code>
 
 7. Since this accumulates the batches to rank0, you can avoid processing weight updates on <br>
     the other processes<br>
@@ -62,5 +64,5 @@
     your wall clock speed with nprocs = 10<br><br>
     
     Run it by giving an openai gym environment name<br><br>
-        <code>&emsp;&emsp;python train.py Walker2d-v1
+        <code>&emsp;&emsp;python train.py Walker2d-v1 -nprocs 10
 
