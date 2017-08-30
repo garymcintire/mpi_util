@@ -1,7 +1,7 @@
 
 
 # Parallelizing RL batch algorithms
-                                            Gary McIntire
+                                            by Gary McIntire
 
     There are multiple ways to do this, but the easiest one(shown here) is to have all 
     processes do their rollouts and then gather those rollouts back to process 0. 
@@ -13,10 +13,16 @@
     where the gradients are averaged together
     That method can require more knowledge of the actual algo whereas accumlating batches 
     to rank0 works for almost all batch RL algorithms
+    
+    Add th mpi_util.py to your project and make a few edits. The example here is the very good Pat Coady 
+    algorithm at ...
+  
+ <a href="https://github.com/pat-coady/trpo"> https://github.com/pat-coady/trpo</a>
+    
 
-1. Make the ConfigProto use as small an amount of memory as possible. <br>
-    It will grow this as needed. Add gpu_options like this ...<br>
-    <code>self.sess = tf.Session(graph=self.g, config=mpi_util.tf_config)  # see tf_config in the code 
+1. Tensorflow wants to take all the GPU memory. Fix that by adding a GPU config to the session creators <br>
+    It will grow this as needed. Add gpu_options to tf.Session like this ...<br>
+    <code>self.sess = tf.Session(graph=self.g, config=mpi_util.tf_config)  # see tf_config in the mpi_util code 
     </code>
 
 2. Add mpi_util<br>
