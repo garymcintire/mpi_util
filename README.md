@@ -1,4 +1,6 @@
-                                Parallelizing RL batch algorithms
+
+
+# Parallelizing RL batch algorithms
                                             Gary McIntire
 
     There are multiple ways to do this, but the easiest one(shown here) is to have all 
@@ -51,5 +53,8 @@
 
     The actual speedup from parallelizing is most dependent on the batch size. Larger batch sizes 
     will get a closer to linear speedup, but even small batche sizes can triple or quadruple 
-    your wall clock speed with nprocs = 10
+    your wall clock speed with nprocs = 10<br><br>
+    
+    Run it by giving an openai gym environment name<br>
+        <code>python train.py Walker2d-v1
 
