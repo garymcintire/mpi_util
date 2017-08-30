@@ -10,7 +10,7 @@
     of the openai baselines https://github.com/openai/baselines/tree/master/baselines/trpo_mpi  
     where the gradients are averaged together
     That method can require more knowledge of the actual algo whereas accumlating batches 
-    to rank0 works for almost all batch RL algorithms
+    to rank0 works for almost all batch RL algorithms 
 
 1. Make the ConfigProto use as small an amount of memory as possible. It will grow this as needed. 
     Add gpu_options like this ...
