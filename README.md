@@ -12,38 +12,38 @@
     That method can require more knowledge of the actual algo whereas accumlating batches 
     to rank0 works for almost all batch RL algorithms
 
-1. Make the ConfigProto use as small an amount of memory as possible. 
-    It will grow this as needed. Add gpu_options like this ...
+1. Make the ConfigProto use as small an amount of memory as possible. <br>
+    It will grow this as needed. Add gpu_options like this ...<br>
     self.sess = tf.Session(graph=self.g, config=mpi_util.tf_config)  # see tf_config in the code below
 
-2. Add mpi_util
+2. Add mpi_util<br>
 	import mpi_util
 
-3. When nprocs is known shortly after program start, fork nprocs...
+3. When nprocs is known shortly after program start, fork nprocs...<br>
 	if "parent" == mpi_util.mpi_fork(args.nprocs): os.exit()
 
-4. Each process and environment will need random different seeds computed from
-    mpi_util.set_global_seeds(seed+mpi_util.rank)
+4. Each process and environment will need random different seeds computed from<br>
+    mpi_util.set_global_seeds(seed+mpi_util.rank)<br>
     env.seed(seed+mpi_util.rank)
 
-5. print statements, env monitoring/rendering, etc may need to be conditional such that only 
-    one process does it
-    if mpi_util.rank == 0: print(...
+5. print statements, env monitoring/rendering, etc may need to be conditional such that only <br>
+    one process does it<br>
+    if mpi_util.rank == 0: print(...<br>
     it can be useful to prepend print statements with the rank   print( str(mpi_util.rank) + ... )
 
-6. Accumulate the batches with something like
-    d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew})
+6. Accumulate the batches with something like<br>
+    d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew})<br>
     observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], d['advantages']
 
-7. Since this accumulates the batches to rank0, you can avoid processing weight updates on 
-    the other processes
-    if mpi_util.rank==0:
-        policy.update(observes, actions, advantages, logger)  # update policy
+7. Since this accumulates the batches to rank0, you can avoid processing weight updates on <br>
+    the other processes<br>
+    if mpi_util.rank==0:<br>
+        policy.update(observes, actions, advantages, logger)  # update policy<br>
         val_func.fit(observes, disc_sum_rew, logger)  # update value function
 
-8. After updating the weights on rank0, broadcast the weights from rank0 back to all the other processes
-    mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')
-    mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')
+8. After updating the weights on rank0, broadcast the weights from rank0 back to all the other processes<br>
+    mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')<br>
+    mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')<br><br>
 
 
     This code is for tensorflow, but a few alterations would allow it to work on theano, pytorch, etc
