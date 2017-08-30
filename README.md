@@ -8,7 +8,7 @@
     Let process 0 compute the weight updates, then broadcast those weight updates 
     from rank0 to all the other processes.
 
-    Another example where batches are 'not' accumulated to rank 0 is the trpo_mpi code 
+    For another example where batches are 'not' accumulated to rank 0, see the trpo_mpi code 
     of the openai baselines https://github.com/openai/baselines/tree/master/baselines/trpo_mpi  
     where the gradients are averaged together.
     That method can require more knowledge of the actual algo whereas accumlating batches 
@@ -48,13 +48,13 @@
 
 7. Since this accumulates the batches to rank0, you can avoid processing weight updates on <br>
     the other processes<br>
-    <code>if mpi_util.rank==0:<br>
-        &emsp;&emsp;policy.update(observes, actions, advantages, logger)  # update policy<br>
+    <code>if mpi_util.rank==0:</code><br>
+        <code>&emsp;&emsp;policy.update(observes, actions, advantages, logger)  # update policy</code><br>
         &emsp;&emsp;val_func.fit(observes, disc_sum_rew, logger)  # update value function</code>
 
 8. After updating the weights on rank0, broadcast the weights from rank0 back to all the other processes<br>
-    <code>mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')<br>
-    mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')</code><br><br><br><br>
+    <code>mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')</code><br>
+    <code>mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')</code><br><br><br><br>
 
 
     This code is for tensorflow, but a few alterations would allow it to work on theano, pytorch, etc
@@ -64,5 +64,5 @@
     your wall clock speed with nprocs = 10<br><br>
     
     Run it by giving an openai gym environment name<br><br>
-        <code>&emsp;&emsp;python train.py Walker2d-v1 -nprocs 10
+        <code>&emsp;&emsp;python train.py Walker2d-v1 --nprocs 10
 
