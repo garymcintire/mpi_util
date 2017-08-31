@@ -12,7 +12,7 @@ import mpi_util
 
 class NNValueFunction(object):
     """ NN-based state-value function """
-    def __init__(self, obs_dim):
+    def __init__(self, obs_dim, hid_list):
         """
         Args:
             obs_dim: number of dimensions in observation vector (int)
@@ -22,6 +22,7 @@ class NNValueFunction(object):
         self.obs_dim = obs_dim
         self.epochs = 10
         self.lr = None  # learning rate set in _build_graph()
+        self.hid_list = hid_list
         self._build_graph()
 
         # self.sess = tf.Session(graph=self.g, config=mpi_util.tf_config)
@@ -35,12 +36,14 @@ class NNValueFunction(object):
             self.obs_ph = tf.placeholder(tf.float32, (None, self.obs_dim), 'obs_valfunc')
             self.val_ph = tf.placeholder(tf.float32, (None,), 'val_valfunc')
             # hid1 layer size is 10x obs_dim, hid3 size is 10, and hid2 is geometric mean
-            hid1_size = self.obs_dim * 10  # 10 chosen empirically on 'Hopper-v1'
-            hid3_size = 5  # 5 chosen empirically on 'Hopper-v1'
-            hid2_size = int(np.sqrt(hid1_size * hid3_size))
-            hid1_size = 31
-            hid2_size = 31
-            hid3_size = 31
+            if self.hid_list == []:
+                hid1_size = self.obs_dim * 10  # 10 chosen empirically on 'Hopper-v1'
+                hid3_size = 5  # 5 chosen empirically on 'Hopper-v1'
+                hid2_size = int(np.sqrt(hid1_size * hid3_size))
+            else:
+                hid1_size = self.hid_list[0]
+                hid2_size = self.hid_list[1]
+                hid3_size = self.hid_list[2]
             # heuristic to set learning rate based on NN size (tuned on 'Hopper-v1')
             self.lr = 1e-2 / np.sqrt(hid2_size)  # 1e-3 empirically determined
             print('Value Params -- h1: {}, h2: {}, h3: {}, lr: {:.3g}'
