@@ -10,13 +10,14 @@ import mpi_util
 
 class Policy(object):
     """ NN-based policy approximation """
-    def __init__(self, obs_dim, act_dim, kl_targ):
+    def __init__(self, obs_dim, act_dim, kl_targ, hid_list):
         """
         Args:
             obs_dim: num observation dimensions (int)
             act_dim: num action dimensions (int)
             kl_targ: target KL divergence between pi_old and pi_new
         """
+        self.hid_list = hid_list
         self.beta = 1.0  # dynamically adjusted D_KL loss multiplier
         self.eta = 50  # multiplier for D_KL-kl_targ hinge-squared loss
         self.kl_targ = kl_targ
@@ -63,12 +64,14 @@ class Policy(object):
          for each action dimension (i.e. variances not determined by NN).
         """
         # hidden layer sizes determined by obs_dim and act_dim (hid2 is geometric mean)
-        hid1_size = self.obs_dim * 10  # 10 empirically determined
-        hid3_size = self.act_dim * 10  # 10 empirically determined
-        hid2_size = int(np.sqrt(hid1_size * hid3_size))
-        hid1_size = 30
-        hid2_size = 30
-        hid3_size = 30
+        if self.hid_list == []: # had problem where this calculation made too big nets for GPU card, so allowed one to specify size
+            hid1_size = self.obs_dim * 10  # 10 empirically determined
+            hid3_size = self.act_dim * 10  # 10 empirically determined
+            hid2_size = int(np.sqrt(hid1_size * hid3_size))
+        else:
+            hid1_size = self.hid_list[0]
+            hid2_size = self.hid_list[1]
+            hid3_size = self.hid_list[2]
         # heuristic to set learning rate based on NN size (tuned on 'Hopper-v1')
         self.lr = 9e-4 / np.sqrt(hid2_size)  # 9e-4 empirically determined
         # 3 hidden layers with tanh activations
