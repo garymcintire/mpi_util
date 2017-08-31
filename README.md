@@ -1,6 +1,6 @@
 
 
-# mpi_util     Parallelizing RL batch algorithms
+# mpi_util   -----  Parallelizing RL batch algorithms
                                             by Gary McIntire
 
     There are multiple ways to do this, but the easiest one(shown here) is to have all 
@@ -33,7 +33,7 @@
 3. When nprocs is known shortly after program start, fork nprocs...<br>
 	<code>if "parent" == mpi_util.mpi_fork(args.nprocs): os.exit()</code>
 
-4. Each process and environment will need random different seeds computed<br>
+4. Each process and environment will need different random seeds computed<br>
     <code>mpi_util.set_global_seeds(seed+mpi_util.rank)</code><br>
     <code>env.seed(seed+mpi_util.rank)</code>
 
