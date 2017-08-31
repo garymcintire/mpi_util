@@ -171,7 +171,8 @@ def bcast(x):
 cache = {}
 def set_wt(sess, graph, var, val):
     k = str(var)
-    if not k in cache:
+    kc = str(sess)+str(graph)+str(var)
+    if not kc in cache:
         with graph.as_default():
             ph = tf.placeholder(val.dtype, shape=val.shape)
             op = var.assign(ph)
