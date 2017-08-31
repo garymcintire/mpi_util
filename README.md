@@ -66,7 +66,7 @@
     your wall clock speed with nprocs = 10<br><br>
     
     Run it by giving an openai gym environment name<br><br>
-        <code>&emsp;&emsp;python train.py Humanoid-v1 --nprocs 10
-        You may have to reduce the size of the networks with Humanoid if you have a smaller GPU memory
+        <code>&emsp;&emsp;python train.py Humanoid-v1 --nprocs 10<br>
+        You may have to reduce the size of the networks with Humanoid if you have a smaller GPU memory<br>
         See --help
 
