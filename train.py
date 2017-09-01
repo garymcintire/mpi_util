@@ -275,7 +275,7 @@ def log_batch_stats(observes, actions, advantages, disc_sum_rew, logger, episode
     tstart = time.time()
 
 
-def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs):
+def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs, policy_hid_list, valfunc_hid_list):
     """ Main training loop
 
     Args:
@@ -302,8 +302,8 @@ def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs):
     mpi_util.set_global_seeds(seed+mpi_util.rank)
     env.seed(seed+mpi_util.rank)
     scaler = Scaler(obs_dim)
-    val_func = NNValueFunction(obs_dim)
-    policy = Policy(obs_dim, act_dim, kl_targ)
+    val_func = NNValueFunction(obs_dim, valfunc_hid_list)
+    policy = Policy(obs_dim, act_dim, kl_targ, policy_hid_list)
     # run a few episodes of untrained policy to initialize scaler:
     run_policy(env, policy, scaler, logger, episodes=5)
     episode = 0
@@ -359,7 +359,11 @@ if __name__ == "__main__":
                         help='Number of episodes per training batch',
                         default=20)
     parser.add_argument('--nprocs', type=int, default=1)
+    parser.add_argument('--policy_hid_list', type=str, help='comma separated 3 layer list.  [30,40,25]', default='[]')
+    parser.add_argument('--valfunc_hid_list', type=str, help='comma separated 3 layer list.  [30,40,25]', default='[]')
 
     args = parser.parse_args()
+    args.policy_hid_list = eval(args.policy_hid_list)
+    args.valfunc_hid_list = eval(args.valfunc_hid_list)
     if "parent" == mpi_util.mpi_fork(args.nprocs): os.exit()
     main(**vars(args))
