@@ -66,7 +66,7 @@
     your wall clock speed with nprocs = 8<br><br>
     
     Run it by giving an openai gym environment name<br><br>
-        <code>&emsp;&emsp;python train.py Walker2d-v1 --nprocs 8</code><br>
+        <code>&emsp;&emsp;python train.py Walker2d-v1 --nprocs 8 --gpu_pct 0.08</code><br>
         You may have to reduce the size of the networks with Humanoid if you have a smaller GPU memory<br>
         See --help
 
