@@ -31,7 +31,7 @@
 	<code>import mpi_util</code>
 
 3. When nprocs is known shortly after program start, fork nprocs...<br>
-	<code>if "parent" == mpi_util.mpi_fork(args.nprocs): os.exit()</code>
+	<code>if "parent" == mpi_util.mpi_fork(args.nprocs, gpu_pct=args.gpu_pct): os.exit()</code>
 
 4. Each process and environment will need different random seeds computed<br>
     <code>mpi_util.set_global_seeds(seed+mpi_util.rank)</code><br>
@@ -63,10 +63,10 @@
 
     The actual speedup from parallelizing is most dependent on the batch size. Larger batch sizes 
     will get closer to linear speedup, but even small batch sizes can triple or quadruple 
-    your wall clock speed with nprocs = 10<br><br>
+    your wall clock speed with nprocs = 8<br><br>
     
     Run it by giving an openai gym environment name<br><br>
-        <code>&emsp;&emsp;python train.py Humanoid-v1 --nprocs 10</code><br>
+        <code>&emsp;&emsp;python train.py Walker2d-v1 --nprocs 8</code><br>
         You may have to reduce the size of the networks with Humanoid if you have a smaller GPU memory<br>
         See --help
 
