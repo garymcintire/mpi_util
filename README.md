@@ -21,8 +21,8 @@
   
  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <a href="https://github.com/pat-coady/trpo"> https://github.com/pat-coady/trpo</a><br>
     
- Install mpi4ph<br>
-    conda install mpi4ch mpich2
+ Install mpi4py<br>
+    &emsp; conda install mpi4py mpich2
 
 1. Tensorflow wants to take all the GPU memory. Fix that by adding a GPU config to the session creators <br>
     It will grow this as needed. Add gpu_options to tf.Session like this ...<br>
