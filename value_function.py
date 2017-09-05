@@ -24,10 +24,8 @@ class NNValueFunction(object):
         self.lr = None  # learning rate set in _build_graph()
         self.hid_list = hid_list
         self._build_graph()
-
-        # self.sess = tf.Session(graph=self.g, config=mpi_util.tf_config)
+        # self.sess = tf.Session(graph=self.g)       this is not needed
         # self.sess.run(self.init)
-        pass
 
     def _build_graph(self):
         """ Construct TensorFlow graph, including loss function, init op and train op """
