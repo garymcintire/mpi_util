@@ -31,7 +31,7 @@
 	<code>import mpi_util</code>
 
 3. When nprocs is known shortly after program start, fork nprocs...<br>
-	<code>if "parent" == mpi_util.mpi_fork(args.nprocs, gpu_pct=args.gpu_pct): os.exit()</code>
+	<code>if "parent" == mpi_util.mpi_fork(args.nprocs, gpu_pct=args.gpu_pct): sys.exit()</code>
 
 4. Each process and environment will need different random seeds computed<br>
     <code>mpi_util.set_global_seeds(seed+mpi_util.rank)</code><br>
@@ -56,8 +56,13 @@
 
 8. After updating the weights on rank0, broadcast the weights from rank0 back to all the other processes<br>
     <code>mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')</code><br>
-    <code>mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')</code><br><br><br><br>
-
+    <code>mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')</code><br>
+    
+9. You should be able to use multiple gpu cards if you have them (untested))<br>
+    <code>with tf.device('/gpu:'+mpi_util.rank%2):</code><br>
+            <code>&emsp;&emsp;main()</code><br>
+ 
+10. You should be able to use multiple computers as well. See mpirun documentation.<br><br><br><br>
 
     This code is for tensorflow, but a few alterations would allow it to work on theano, pytorch, etc
 
