@@ -138,7 +138,6 @@ class Policy(object):
         self.sampled_act = (self.means +
                             tf.exp(self.log_vars / 2.0) *
                             tf.random_normal(shape=(self.act_dim,)))
-        self.sigma = tf.exp(self.log_vars / 2.0)
 
     def _loss_train_op(self):
         """
@@ -161,16 +160,13 @@ class Policy(object):
         """Launch TensorFlow session and initialize variables"""
         self.sess = tf.Session(graph=self.g, config=mpi_util.tf_config)
         self.sess.run(self.init)
-        pass
 
     def sample(self, obs):
         """Draw sample from policy distribution"""
         feed_dict = {self.obs_ph: obs}
 
         return self.sess.run(self.sampled_act, feed_dict=feed_dict)
-    def print_sigmas(self, obs):
-        feed_dict = {self.obs_ph: obs}
-        print(str(mpi_util.rank)+'sigmas',self.sess.run(self.sigma, feed_dict=feed_dict).tolist())
+
     def update(self, observes, actions, advantages, logger):
         """ Update policy based on observations, actions and advantages
 
@@ -194,11 +190,7 @@ class Policy(object):
         for e in range(self.epochs):
             # TODO: need to improve data pipeline - re-feeding data every epoch
             self.sess.run(self.train_op, feed_dict)
-            # print('rank',mpi_util.rank,'--------------------------------------------- policy --------------------------------------------------')
             loss, kl, entropy = self.sess.run([self.loss, self.kl, self.entropy], feed_dict)
-            if not mpi_util.batches_or_update:  # while this worked. It was not faster(wall clock) or as sample efficient as just collecting the batches for process 0
-                mpi_util.all_avg_wts(self.sess, self.g, 'policy')
-                kl = mpi_util.all_mean(np.array([kl]))[0]
             if kl > self.kl_targ * 4:  # early stopping if D_KL diverges badly
                 break
         # TODO: too many "magic numbers" in next 8 lines of code, need to clean up
