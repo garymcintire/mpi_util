@@ -50,7 +50,7 @@ import time
     mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')
 
 9.  You should be able to use multiple gpu cards if you have them (untested))
-    with tf.device('/gpu:'+mpi_util.rank%2):   
+    with tf.device('/gpu:'+str(mpi_util.rank)):   
         main()
 
 10. You should be able to use multiple computers as well. See mpirun documentation on host files
