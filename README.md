@@ -59,7 +59,7 @@
     <code>mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')</code><br>
     
 9. You should be able to use multiple gpu cards if you have them (untested))<br>
-    <code>with tf.device('/gpu:'+mpi_util.rank%2):</code><br>
+    <code>with tf.device('/gpu:'+str(mpi_util.rank)):</code><br>
             <code>&emsp;&emsp;main()</code><br>
  
 10. You should be able to use multiple computers as well. See mpirun documentation.<br><br><br><br>
