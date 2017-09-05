@@ -69,7 +69,7 @@ class Logger(object):
             now: unique sub-directory name (e.g. date/time string)
         """
         path = os.path.join('log-files', logname, now)
-        os.makedirs(path)
+        os.makedirs(path, exist_ok=True)    # mpi_util needed to mod this to avoid the directory already exists error
         filenames = glob.glob('*.py')  # put copy of all python files in log_dir
         for filename in filenames:     # for reference
             shutil.copy(filename, path)
@@ -102,7 +102,7 @@ class Logger(object):
         """Print metrics to stdout"""
         log_keys = [k for k in log.keys()]
         log_keys.sort()
-        print('***** '+str(mpi_util.rank)+'Episode {}, Mean R = {:.1f} *****'.format(log['_Episode'],
+        print('nworkers '+str(mpi_util.nworkers)+' ***** Episode {}, Mean R = {:.1f} *****'.format(log['_Episode'],
                                                                log['_MeanReward']))
         for key in log_keys:
             if key[0] != '_':  # don't display log items with leading '_'
