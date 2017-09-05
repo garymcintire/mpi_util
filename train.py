@@ -37,11 +37,8 @@ import os
 import argparse
 import signal
 
-from mpi4py import MPI
-import os, subprocess, sys
-import numpy as np
+import sys
 import mpi_util
-import time
 
 class GracefulKiller:
     """ Gracefully exit program on CTRL-C """
@@ -98,7 +95,7 @@ def run_episode(env, policy, scaler, animate=False):
     scale[-1] = 1.0  # don't scale time step feature
     offset[-1] = 0.0  # don't offset time step feature
     while not done:
-        if animate and mpi_util.rank == 0:
+        if animate and mpi_util.rank==0:
             env.render()
         obs = obs.astype(np.float32).reshape((1, -1))
         obs = np.append(obs, [[step]], axis=1)  # add time step feature
@@ -148,6 +145,7 @@ def run_policy(env, policy, scaler, logger, episodes):
     scaler.update(unscaled)  # update running statistics for scaling observations
     # logger.log({'_MeanReward': np.mean([t['rewards'].sum() for t in trajectories]), 'Steps': total_steps})
     logger.log({'_MeanReward':   mpi_util.all_mean(np.array([np.mean([t['rewards'].sum() for t in trajectories])]))[0]  , 'Steps': total_steps})
+
     return trajectories
 
 
@@ -236,22 +234,15 @@ def build_train_set(trajectories):
     actions = np.concatenate([t['actions'] for t in trajectories])
     disc_sum_rew = np.concatenate([t['disc_sum_rew'] for t in trajectories])
     advantages = np.concatenate([t['advantages'] for t in trajectories])
-    # do we even need to concat these from the different processes?  trpo does not. it does specific allmean()s
-    if mpi_util.batches_or_update:
+    if mpi_util.nworkers > 1:
         d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew})
         observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], d['advantages']
     # normalize advantages
     advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-6)
-    # observes = np.concatenate(MPI.COMM_WORLD.allgather(observes))
-    # actions = np.concatenate(MPI.COMM_WORLD.allgather(actions))
-    # advantages = np.concatenate(MPI.COMM_WORLD.allgather(advantages))
-    # disc_sum_rew = np.concatenate(MPI.COMM_WORLD.allgather(disc_sum_rew))
-    print(str(mpi_util.rank)+'len_of_accum_batches',len(observes))
+
     return observes, actions, advantages, disc_sum_rew
 
-tstart = time.time()
 def log_batch_stats(observes, actions, advantages, disc_sum_rew, logger, episode):
-    global tstart
     """ Log various batch statistics """
     logger.log({'_mean_obs': np.mean(observes),
                 '_min_obs': np.min(observes),
@@ -269,13 +260,12 @@ def log_batch_stats(observes, actions, advantages, disc_sum_rew, logger, episode
                 '_min_discrew': np.min(disc_sum_rew),
                 '_max_discrew': np.max(disc_sum_rew),
                 '_std_discrew': np.var(disc_sum_rew),
-                '_Episode': episode,
+                '_Episode': episode
                 })
-    print(str(mpi_util.rank)+'_steps_sec', len(observes)/(time.time()-tstart))
-    tstart = time.time()
+    mpi_util.steps_sec(len(observes))        # print the speed in steps per second
 
 
-def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs, policy_hid_list, valfunc_hid_list):
+def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs, policy_hid_list, valfunc_hid_list, gpu_pct):
     """ Main training loop
 
     Args:
@@ -288,53 +278,49 @@ def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs, policy
     """
     # killer = GracefulKiller()
     if mpi_util.nworkers > 1: batch_size = batch_size//mpi_util.nworkers if batch_size%mpi_util.nworkers==0 else batch_size//mpi_util.nworkers +1
-    print('num_episodes per process', batch_size)
     env, obs_dim, act_dim = init_gym(env_name)
+    mpi_util.set_global_seeds(111+mpi_util.rank)
+    env.seed(111+mpi_util.rank)
     obs_dim += 1  # add 1 to obs dimension for time step feature (see run_episode())
     now = datetime.utcnow().strftime("%b-%d_%H:%M:%S")  # create unique directories
-    # rank = MPI.COMM_WORLD.Get_rank()
-    print('my rank is:',mpi_util.rank)
-    logger = Logger(logname=env_name+str(mpi_util.rank), now=now)
+    logger = Logger(logname=env_name, now=now)
     aigym_path = os.path.join('/tmp', env_name, now)
-    if mpi_util.rank == 0:
-        env = wrappers.Monitor(env, aigym_path, force=True)
-    seed = 100+nprocs
-    mpi_util.set_global_seeds(seed+mpi_util.rank)
-    env.seed(seed+mpi_util.rank)
+    if mpi_util.rank==0: env = wrappers.Monitor(env, aigym_path, force=True)
     scaler = Scaler(obs_dim)
     val_func = NNValueFunction(obs_dim, valfunc_hid_list)
     policy = Policy(obs_dim, act_dim, kl_targ, policy_hid_list)
     # run a few episodes of untrained policy to initialize scaler:
     run_policy(env, policy, scaler, logger, episodes=5)
     episode = 0
-    # mpi_util.all_avg_wts(val_func.sess, val_func.g, 'val')  # initially synchronize the weights
-    # mpi_util.all_avg_wts(policy.sess, policy.g, 'policy')
     while episode < num_episodes:
+        mpi_util.timeit('--------------------------')
         trajectories = run_policy(env, policy, scaler, logger, episodes=batch_size)
+        mpi_util.timeit('run_policy')
+        # episode += len(trajectories)
         episode += mpi_util.all_sum(np.array([len(trajectories)]))[0]
+        mpi_util.timeit('mpi_util.all_sum')
         add_value(trajectories, val_func)  # add estimated values to episodes
+        mpi_util.timeit('add_value')
         add_disc_sum_rew(trajectories, gamma)  # calculated discounted sum of Rs
+        mpi_util.timeit('add_disc_sum_rew')
         add_gae(trajectories, gamma, lam)  # calculate advantage
+        mpi_util.timeit('add_gae')
         # concatenate all episodes into single NumPy arrays
         observes, actions, advantages, disc_sum_rew = build_train_set(trajectories)
-        policy.print_sigmas(observes[0:1])
+        mpi_util.timeit('build_train_set')
         # add various stats to training log:
         log_batch_stats(observes, actions, advantages, disc_sum_rew, logger, episode)
-        if mpi_util.batches_or_update:   # rank0 does all calcs then broadcasts wts
-            if mpi_util.rank==0:
-                policy.update(observes, actions, advantages, logger)  # update policy
-                val_func.fit(observes, disc_sum_rew, logger)  # update value function
-            mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')
-            mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')
-        else:
+        mpi_util.timeit('log_batch_stats')
+        if mpi_util.rank==0:
             policy.update(observes, actions, advantages, logger)  # update policy
+            mpi_util.timeit('policy.update')
             val_func.fit(observes, disc_sum_rew, logger)  # update value function
-        # mpi_util.all_avg_wts(val_func.sess, val_func.g, 'val')  # initially synchronize the weights
-        # mpi_util.all_avg_wts(policy.sess, policy.g, 'policy')
-        # print('rank',mpi_util.rank,'--------------------------------------------- val --------------------------------------------------')
-        if not mpi_util.batches_or_update:   # if all are calculating the policy, the value func wts still need to be averaged here
-            mpi_util.all_avg_wts(val_func.sess, val_func.g, 'val')
-        logger.write(display=True)  # write logger results to file and stdout
+            mpi_util.timeit('val_func.fit')
+        mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')
+        mpi_util.timeit('mpi_util.rank0_bcast_wts(val_func')
+        mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')
+        mpi_util.timeit('mpi_util.rank0_bcast_wts(policy')
+        if mpi_util.rank==0: logger.write(display=True)  # write logger results to file and stdout
         # if killer.kill_now:
         #     if input('Terminate training (y/[n])? ') == 'y':
         #         break
@@ -358,12 +344,14 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--batch_size', type=int,
                         help='Number of episodes per training batch',
                         default=20)
+
     parser.add_argument('--nprocs', type=int, default=1)
+    parser.add_argument('--gpu_pct', type=float, default=0.0, help ='tensorflow  per_process_gpu_memory_fraction  option. .08 may work for 10 processes')
     parser.add_argument('--policy_hid_list', type=str, help='comma separated 3 layer list.  [30,40,25]', default='[]')
     parser.add_argument('--valfunc_hid_list', type=str, help='comma separated 3 layer list.  [30,40,25]', default='[]')
 
     args = parser.parse_args()
     args.policy_hid_list = eval(args.policy_hid_list)
     args.valfunc_hid_list = eval(args.valfunc_hid_list)
-    if "parent" == mpi_util.mpi_fork(args.nprocs): os.exit()
+    if "parent" == mpi_util.mpi_fork(args.nprocs, gpu_pct=args.gpu_pct): sys.exit()
     main(**vars(args))
