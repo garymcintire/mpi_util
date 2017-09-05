@@ -25,7 +25,7 @@
     &emsp; conda install mpi4py mpich2
 
 1. Tensorflow wants to take all the GPU memory. Fix that by adding a GPU config to the session creators <br>
-    It will grow this as needed. Add gpu_options to tf.Session like this ...<br>
+    Add gpu_options to tf.Session like this ...<br>
     <code>self.sess = tf.Session(graph=self.g, config=mpi_util.tf_config)  # see tf_config in the mpi_util code 
     </code>
 
