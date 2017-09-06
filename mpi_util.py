@@ -116,8 +116,9 @@ def mpi_fork(n, gpu_pct=0.0):
             OMP_NUM_THREADS="1",
             IN_MPI="1"
         )
-        print( ["mpirun", "-np", str(n), sys.executable] + sys.argv)
-        subprocess.check_call(["mpirun", "-np", str(n),   sys.executable] +['-u']+ sys.argv, env=env)    # this mpirun makes bcast take more time with each iteration
+        cmd = ["mpirun", "-np", str(n),   sys.executable] +['-u']+ sys.argv
+        print(cmd)
+        subprocess.check_call(cmd, env=env)
         # subprocess.check_call(["/usr/bin/mpirun", "-np", str(n), '-mca', 'coll_tuned_bcast_algorithm', '0', sys.executable] +['-u']+ sys.argv, env=env)       # this mpirun is 1/3 the speed of the one above
         return "parent"
     else:
@@ -209,18 +210,15 @@ def all_accum_batches(segs):
     return accum_batches(segs)
 
 def all_sum(x):
-    assert isinstance(x, np.ndarray)
-    out = np.empty_like(x)
-    MPI.COMM_WORLD.Allreduce(x, out, op=MPI.SUM)
-    # MPI.COMM_WORLD.Barrier()
-    return out
-def all_sum_scalar(x):
-    return all_sum(np.array([x]))[0]
+    if isinstance(x, np.ndarray):
+        out = np.empty_like(x)
+        MPI.COMM_WORLD.Allreduce(x, out, op=MPI.SUM)
+        return out
+    else:           # if not a numpy array, try it as a scalar
+        return all_sum(np.array([x]))[0]
 
 def all_mean(x):
     return all_sum(x) / nworkers
-def all_mean_scalar(x):
-    return all_mean(np.array([x]))[0]
 
 def bcast(x):
     # print(str(rank)+'bcast sees',type(x),x.shape)
