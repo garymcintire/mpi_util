@@ -64,7 +64,7 @@
     <code>with tf.device('/gpu:'+str(mpi_util.rank % numGPUcards)):</code><br>
             <code>&emsp;&emsp;main()</code><br>
  
-10. You should be able to use multiple computers as well. See mpirun documentation.<br><br><br><br>
+10. You should be able to use multiple computers as well. See mpirun documentation on host file.<br><br><br><br>
 
     This code is for tensorflow, but a few alterations would allow it to work on theano, pytorch, etc
 
@@ -77,3 +77,24 @@
         You may have to reduce the size of the networks with Humanoid if you have a smaller GPU memory<br>
         See --help
 
+
+<PRE>
+<code>
+                        Timing<br>
+    python ../train.py Walker2d-v1 --nprocs 10 --gpu_pct 0.05  -n 2000<br>
+
+nprocs  steps_per_sec   reward_mean
+1            546             641        # reward is highly variable because robot is highly variable
+2           1040             544
+3           1712             611
+4           2014            1220
+5           1950            1513
+6           2100             860
+7           2300             681
+8           2400             452
+9           2484             359
+10          2339             367
+11          2384             410
+12          2169             336
+</code>
+</PRE>
