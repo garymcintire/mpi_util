@@ -144,7 +144,7 @@ def run_policy(env, policy, scaler, logger, episodes):
     unscaled = np.concatenate([t['unscaled_obs'] for t in trajectories])
     scaler.update(unscaled)  # update running statistics for scaling observations
     # logger.log({'_MeanReward': np.mean([t['rewards'].sum() for t in trajectories]), 'Steps': total_steps})
-    logger.log({'_MeanReward':   mpi_util.all_mean( np.mean([t['rewards'].sum() for t in trajectories]) )  , 'Steps': total_steps})
+    logger.log({'_MeanReward':   mpi_util.all_mean( np.mean([t['rewards'].sum() for t in trajectories]) )  , 'Steps': mpi_util.all_sum(total_steps)})
 
     return trajectories
 
