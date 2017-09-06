@@ -17,7 +17,7 @@
     To parallelize your algo, add the mpi_util.py to your project and make a few edits to the 
     original source code following these steps. 
     
-    The example used here is the excellent Pat Coady algorithm at ...
+    The example parallelized here is the excellent Pat Coady algorithm at ...
   
  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <a href="https://github.com/pat-coady/trpo"> https://github.com/pat-coady/trpo</a><br>
     
