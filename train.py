@@ -144,7 +144,7 @@ def run_policy(env, policy, scaler, logger, episodes):
     unscaled = np.concatenate([t['unscaled_obs'] for t in trajectories])
     scaler.update(unscaled)  # update running statistics for scaling observations
     # logger.log({'_MeanReward': np.mean([t['rewards'].sum() for t in trajectories]), 'Steps': total_steps})
-    logger.log({'_MeanReward':   mpi_util.all_mean_scalar( np.mean([t['rewards'].sum() for t in trajectories]) )  , 'Steps': total_steps})
+    logger.log({'_MeanReward':   mpi_util.all_mean( np.mean([t['rewards'].sum() for t in trajectories]) )  , 'Steps': total_steps})
 
     return trajectories
 
@@ -297,7 +297,7 @@ def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs, policy
         trajectories = run_policy(env, policy, scaler, logger, episodes=batch_size)
         mpi_util.timeit('run_policy')
         # episode += len(trajectories)
-        episode += mpi_util.all_sum_scalar(len(trajectories))
+        episode += mpi_util.all_sum(len(trajectories))
         mpi_util.timeit('mpi_util.all_sum')
         add_value(trajectories, val_func)  # add estimated values to episodes
         mpi_util.timeit('add_value')
