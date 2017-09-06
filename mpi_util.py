@@ -310,11 +310,19 @@ def chksum(sess, graph, label=''):
         sess.run(var, feed_dict={var: wts})
     print('CHKSUM rank:',rank, 'nworkers',nworkers, 'label',label,'chksum', chksum)
 
+loop_start_time = -1
 lasttime = 0.
 def timeit(label):
-    global lasttime
+    if rank!=0: return
+    global lasttime, loop_start_time
     thistime = time.time()
-    if rank==0: print(str(rank)+'timed-'+label,thistime-lasttime)
+    if '---------' in label:    # bunch of hyphens indicates top of the loop
+        if loop_start_time > 0:
+            print(str(rank)+'timed-'+label+' TimeofLastLoop',thistime-loop_start_time)    # print the time of the last loop
+        loop_start_time = thistime
+        lasttime = thistime
+    else:
+        print(str(rank)+'timed-'+label,thistime-lasttime)
     lasttime = thistime
 
 
