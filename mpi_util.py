@@ -29,9 +29,9 @@ import time
 	import mpi_util
 
 3. When nprocs is known shortly after program start, fork nprocs...
-	if "parent" == mpi_util.mpi_fork(args.nprocs): sys.exit()
+	if "parent" == mpi_util.mpi_fork(args.nprocs, gpu_pct=args.gpu_pct): sys.exit()
 
-4. Each process and environment will need random different seeds computed from
+4. Each process and environment will need different random seeds computed from
     mpi_util.set_global_seeds(seed+mpi_util.rank)
     env.seed(seed+mpi_util.rank)
 
@@ -52,8 +52,8 @@ import time
     mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')
     mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')
 
-9.  You should be able to use multiple gpu cards if you have them (untested))
-    with tf.device('/gpu:'+str(mpi_util.rank)):   
+9.  You should be able to use multiple gpu cards if you have them (untested)
+    with tf.device('/gpu:'+str(mpi_util.rank % numGPUcards)):
         main()
 
 10. You should be able to use multiple computers as well. See mpirun documentation on host files
@@ -62,10 +62,11 @@ import time
     This code is for tensorflow, but a few alterations would allow it to work on theano, pytorch, etc
 
     The actual speedup from parallelizing is most dependent on the batch size. Larger batch sizes will get a closer to
-    linear speedup, but even small batche sizes can triple or quadruple your wall clock speed with nprocs = 8
+    linear speedup, but even small batch sizes can triple or quadruple your wall clock speed with nprocs = 8
 
 
-                        Timing
+                        Timing  -  on single Xeon 5680 Hex core/twelve thread  GTX 1070
+
     python ../train.py Walker2d-v1 --nprocs 10 --gpu_pct 0.05  -n 2000
 
 nprocs  steps_per_sec   reward_mean
