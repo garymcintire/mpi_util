@@ -144,7 +144,7 @@ def run_policy(env, policy, scaler, logger, episodes):
     unscaled = np.concatenate([t['unscaled_obs'] for t in trajectories])
     scaler.update(unscaled)  # update running statistics for scaling observations
     # logger.log({'_MeanReward': np.mean([t['rewards'].sum() for t in trajectories]), 'Steps': total_steps})
-    logger.log({'_MeanReward':   mpi_util.all_mean(np.array([np.mean([t['rewards'].sum() for t in trajectories])]))[0]  , 'Steps': total_steps})
+    logger.log({'_MeanReward':   mpi_util.all_mean_scalar( np.mean([t['rewards'].sum() for t in trajectories]) )  , 'Steps': total_steps})
 
     return trajectories
 
@@ -237,6 +237,7 @@ def build_train_set(trajectories):
     if mpi_util.nworkers > 1:
         d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew})
         observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], d['advantages']
+    mpi_util.steps_sec(len(observes))        # print the speed in steps per second
     # normalize advantages
     advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-6)
 
@@ -262,7 +263,6 @@ def log_batch_stats(observes, actions, advantages, disc_sum_rew, logger, episode
                 '_std_discrew': np.var(disc_sum_rew),
                 '_Episode': episode
                 })
-    mpi_util.steps_sec(len(observes))        # print the speed in steps per second
 
 
 def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs, policy_hid_list, valfunc_hid_list, gpu_pct):
@@ -277,7 +277,7 @@ def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs, policy
         batch_size: number of episodes per policy training batch
     """
     # killer = GracefulKiller()
-    if mpi_util.nworkers > 1: batch_size = batch_size//mpi_util.nworkers if batch_size%mpi_util.nworkers==0 else batch_size//mpi_util.nworkers +1
+    if mpi_util.nworkers > 1: batch_size = batch_size//mpi_util.nworkers if batch_size%mpi_util.nworkers==0 else batch_size//mpi_util.nworkers +1 # spread the desired batch across processes
     env, obs_dim, act_dim = init_gym(env_name)
     mpi_util.set_global_seeds(111+mpi_util.rank)
     env.seed(111+mpi_util.rank)
@@ -285,7 +285,7 @@ def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs, policy
     now = datetime.utcnow().strftime("%b-%d_%H:%M:%S")  # create unique directories
     logger = Logger(logname=env_name, now=now)
     aigym_path = os.path.join('/tmp', env_name, now)
-    if mpi_util.rank==0: env = wrappers.Monitor(env, aigym_path, force=True)
+    if mpi_util.rank==0: env = wrappers.Monitor(env, aigym_path, force=True, write_upon_reset=True)
     scaler = Scaler(obs_dim)
     val_func = NNValueFunction(obs_dim, valfunc_hid_list)
     policy = Policy(obs_dim, act_dim, kl_targ, policy_hid_list)
@@ -293,11 +293,11 @@ def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs, policy
     run_policy(env, policy, scaler, logger, episodes=5)
     episode = 0
     while episode < num_episodes:
-        mpi_util.timeit('--------------------------')
+        mpi_util.timeit('--------------------------')   # let's time everything so we can see where the work is being done
         trajectories = run_policy(env, policy, scaler, logger, episodes=batch_size)
         mpi_util.timeit('run_policy')
         # episode += len(trajectories)
-        episode += mpi_util.all_sum(np.array([len(trajectories)]))[0]
+        episode += mpi_util.all_sum_scalar(len(trajectories))
         mpi_util.timeit('mpi_util.all_sum')
         add_value(trajectories, val_func)  # add estimated values to episodes
         mpi_util.timeit('add_value')
