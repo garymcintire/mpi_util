@@ -60,7 +60,7 @@
     <code>mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')</code><br>
     <code>mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')</code><br>
     
-9. You should be able to use multiple gpu cards if you have them (untested))<br>
+9. You should be able to use multiple gpu cards if you have them (untested)<br>
     <code>with tf.device('/gpu:'+str(mpi_util.rank % numGPUcards)):</code><br>
             <code>&emsp;&emsp;main()</code><br>
  
@@ -80,11 +80,9 @@
 
 <PRE>
 <code>
-                        Timing
+                        Timing  -  on single Xeon 5680 Hex core/twelve thread  GTX 1070
                         
     python ../train.py Walker2d-v1 --nprocs 10 --gpu_pct 0.05  -n 2000
-    
-    on single Xeon Hex core/twelve thread  GTX 1070
 
 nprocs  steps_per_sec   reward_mean
 1            546             641        # reward is highly variable because robot is highly variable
