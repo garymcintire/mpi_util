@@ -82,6 +82,7 @@
 <code>
                         Timing<br>
     python ../train.py Walker2d-v1 --nprocs 10 --gpu_pct 0.05  -n 2000<br>
+    on single Xeon Hex core/ twelve thread  GTX 1070
 
 nprocs  steps_per_sec   reward_mean
 1            546             641        # reward is highly variable because robot is highly variable
