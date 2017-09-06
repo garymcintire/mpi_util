@@ -80,8 +80,10 @@
 
 <PRE>
 <code>
-                        Timing<br>
-    python ../train.py Walker2d-v1 --nprocs 10 --gpu_pct 0.05  -n 2000<br>
+                        Timing
+                        
+    python ../train.py Walker2d-v1 --nprocs 10 --gpu_pct 0.05  -n 2000
+    
     on single Xeon Hex core/ twelve thread  GTX 1070
 
 nprocs  steps_per_sec   reward_mean
