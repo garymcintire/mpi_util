@@ -237,7 +237,7 @@ def build_train_set(trajectories):
     if mpi_util.nworkers > 1:
         d = mpi_util.rank0_accum_batches({'advantages': advantages, 'actions': actions, 'observes': observes, 'disc_sum_rew': disc_sum_rew})
         observes, actions, disc_sum_rew, advantages = d['observes'], d['actions'], d['disc_sum_rew'], d['advantages']
-    mpi_util.steps_sec(len(observes))        # print the speed in steps per second
+    mpi_util.steps_sec(len(observes))        # print the speed in steps per second now that we know the number of steps in the accummed batch
     # normalize advantages
     advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-6)
 
@@ -277,7 +277,7 @@ def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs, policy
         batch_size: number of episodes per policy training batch
     """
     # killer = GracefulKiller()
-    if mpi_util.nworkers > 1: batch_size = batch_size//mpi_util.nworkers if batch_size%mpi_util.nworkers==0 else batch_size//mpi_util.nworkers +1 # spread the desired batch across processes
+    if mpi_util.nworkers > 1: batch_size = batch_size//mpi_util.nworkers if batch_size%mpi_util.nworkers==0 else batch_size//mpi_util.nworkers +1 # spread the desired batch_size across processes
     env, obs_dim, act_dim = init_gym(env_name)
     mpi_util.set_global_seeds(111+mpi_util.rank)
     env.seed(111+mpi_util.rank)
