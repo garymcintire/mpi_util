@@ -316,7 +316,7 @@ def timeit(label):
     if rank!=0: return
     global lasttime, loop_start_time
     thistime = time.time()
-    if '---------' in label:    # bunch of hyphens indicates top of the loop
+    if '------' in label:    # bunch of hyphens indicates top of the loop
         if loop_start_time > 0:
             print(str(rank)+'timed-'+label+' TimeofLastLoop',thistime-loop_start_time)    # print the time of the last loop
         loop_start_time = thistime
