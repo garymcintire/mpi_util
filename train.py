@@ -316,7 +316,7 @@ def main(env_name, num_episodes, gamma, lam, kl_targ, batch_size, nprocs, policy
             mpi_util.timeit('policy.update')
             val_func.fit(observes, disc_sum_rew, logger)  # update value function
             mpi_util.timeit('val_func.fit')
-        mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')
+        mpi_util.rank0_bcast_wts(val_func.sess, val_func.g, 'val')  # doubt if value network is used during rollouts but it only takes a few milliseconds anyhow
         mpi_util.timeit('mpi_util.rank0_bcast_wts(val_func')
         mpi_util.rank0_bcast_wts(policy.sess, policy.g, 'policy')
         mpi_util.timeit('mpi_util.rank0_bcast_wts(policy')
