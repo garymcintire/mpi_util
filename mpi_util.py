@@ -22,7 +22,7 @@ import time
 0. Install mpi4ph
     conda install mpi4ch mpich2
 
-1. Make the ConfigProto use as small an amount of memory as possible. It will grow this as needed. Add gpu_options like this
+1. Make the ConfigProto use as small an amount of memory as possible. Add gpu_options like this
     self.sess = tf.Session(graph=self.g, config=mpi_util.tf_config)  # see tf_config in the code below
 
 2. Add mpi_util
@@ -214,9 +214,13 @@ def all_sum(x):
     MPI.COMM_WORLD.Allreduce(x, out, op=MPI.SUM)
     # MPI.COMM_WORLD.Barrier()
     return out
+def all_sum_scalar(x):
+    return all_sum(np.array([x]))[0]
 
 def all_mean(x):
     return all_sum(x) / nworkers
+def all_mean_scalar(x):
+    return all_mean(np.array([x]))[0]
 
 def bcast(x):
     # print(str(rank)+'bcast sees',type(x),x.shape)
