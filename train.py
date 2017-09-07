@@ -38,6 +38,7 @@ import argparse
 import signal
 
 import sys
+import roboschool
 import mpi_util
 
 class GracefulKiller:
